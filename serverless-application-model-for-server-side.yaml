@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  MyDynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: BookCollection
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  MyLambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      CodeUri: project-directory/
+|-- app.py
+|-- templates/
+|   |-- index.html
+|   |-- add.html
+|   |-- edit-rating.html
+|-- book-collection.db
+      MemorySize: 256
+      Timeout: 30
+      Environment:
+        Variables:
+          FLASK_APP: app
+          FLASK_ENV: production
+          DATABASE_URI: !Sub "dynamodb://${MyDynamoDBTable}"
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+        Add:
+          Type: Api
+          Properties:
+            Path: /add
+            Method: ANY
+        EditRating:
+          Type: Api
+          Properties:
+            Path: /edit-rating
+            Method: ANY
+        Delete:
+          Type: Api
+          Properties:
+            Path: /delete
+            Method: ANY
